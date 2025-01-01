@@ -193,33 +193,35 @@ export const authentication = asyncHandler(async (req, res) => {
 });
 
 // Add passport Google strategy configuration
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: '/api/v1/auth/google/callback',
-    },
-    async (accessToken, _, profile, done) => {
-      try {
-        let user = await User.findOne({ email: profile.emails[0].value });
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: '/api/v1/auth/google/callback',
+      },
+      async (accessToken, _, profile, done) => {
+        try {
+          let user = await User.findOne({ email: profile.emails[0].value });
 
-        if (!user) {
-          user = await User.create({
-            name: profile.displayName,
-            email: profile.emails[0].value,
-            password: `google_${profile.id}`,
-            googleId: profile.id,
-          });
+          if (!user) {
+            user = await User.create({
+              name: profile.displayName,
+              email: profile.emails[0].value,
+              password: `google_${profile.id}`,
+              googleId: profile.id,
+            });
+          }
+
+          return done(null, user);
+        } catch (error) {
+          return done(error, null);
         }
-
-        return done(null, user);
-      } catch (error) {
-        return done(error, null);
-      }
-    },
-  ),
-);
+      },
+    ),
+  );
+}
 
 // Google authentication routes
 export const googleAuth = passport.authenticate('google', {
