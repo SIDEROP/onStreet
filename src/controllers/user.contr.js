@@ -9,7 +9,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 // Register a new user
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password,role="user" } = req.body;
+  const { name, email, phone, password,role="user" } = req.body;
 
   if ([name, email, password].some((field) => !field || field.trim() === '')) {
     throw new ApiError(400, 'All fields are required');
@@ -25,6 +25,7 @@ export const register = asyncHandler(async (req, res) => {
   const user = await User.create({
     name,
     email,
+    phone,
     password,
     role
   })

@@ -4,9 +4,12 @@ import ApiResponse from '../utils/ApiResponse.js';
 import Post from '../models/Post.model.js';
 import { deleteFromCloudinary, uploadToCloudinary } from '../utils/Cloudnery.js';
 import Comment from '../models/Comments.js';
+
+
 // Create a new post
 export const createPost = asyncHandler(async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, price, isForSale } = req.body;
+
   const files = req.files;
 
   if (!title || !content) {
@@ -26,7 +29,9 @@ export const createPost = asyncHandler(async (req, res) => {
     title,
     content,
     vendorId: req.vendor.id,
-    images: imageUrls
+    images: imageUrls,
+    ...(isForSale && { isForSale: true }),
+    ...(price && { price })
   });
 
   return res.status(201).json(new ApiResponse(201, post, 'Post created successfully'));

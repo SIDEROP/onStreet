@@ -75,6 +75,7 @@ export const editProfile = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, vendor, 'Profile updated successfully'));
 });
+
 // Get vendor profile
 export const getProfile = asyncHandler(async (req, res) => {
   const vendor = await StreetVendor.aggregate([
