@@ -1,6 +1,6 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
-import ApiResponse from '../utils/apiResponse.js';
+import ApiResponse from '../utils/ApiResponse.js';
 import Order from '../models/Order.model.js';
 import StreetVendor from '../models/StreetVendor.model.js';
 import crypto from 'crypto';
