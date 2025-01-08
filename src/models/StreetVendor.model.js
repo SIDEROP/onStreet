@@ -7,7 +7,7 @@ const StreetVendorSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, select: false },
-    phone: { type: String, required: true },
+    phone: { type: String, required: true,unique: true },
     address: { type: String, required: true },
     businessType: { type: String, required: true },
     category: { type: String, required: true, enum: ['restaurant', 'dhaba', 'food_cart', 'food_truck', 'tiffin_service', 'street_food'] },
@@ -49,6 +49,27 @@ const StreetVendorSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// Convert time to 12-hour format with AM/PM
+StreetVendorSchema.pre('save', function(next) {
+  if (this.operatingHours) {
+    if (this.operatingHours.start) {
+      const [hours, minutes] = this.operatingHours.start.split(':');
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12;
+      this.operatingHours.start = `${formattedHours}:${minutes} ${period}`;
+    }
+
+    if (this.operatingHours.end) {
+      const [hours, minutes] = this.operatingHours.end.split(':');
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12;
+      this.operatingHours.end = `${formattedHours}:${minutes} ${period}`;
+    }
+  }
+  next();
+});
+
 
 StreetVendorSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

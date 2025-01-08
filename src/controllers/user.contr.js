@@ -10,15 +10,20 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 // Register a new user
 export const register = asyncHandler(async (req, res) => {
   const { name, email, phone, password,role="user" } = req.body;
+  console.log(req.body)
 
   if ([name, email, password].some((field) => !field || field.trim() === '')) {
+    res.status(400).json(new ApiError(400, 'Email and password are required'))
     throw new ApiError(400, 'All fields are required');
   }
 
   const existingUser = await User.findOne({ email });
   const existingVendor = await StreetVendor.findOne({ email });
-  
-  if (existingUser || existingVendor) {
+  const existingUserWithPhone = await User.findOne({ phone });  
+  const existingVendorWithPhone = await StreetVendor.findOne({ phone });
+
+  if (existingUser || existingVendor || existingUserWithPhone || existingVendorWithPhone) {
+    res.status(400).json(new ApiError(400, 'User already exists'));
     throw new ApiError(400, 'User already exists');
   }
 
@@ -32,6 +37,7 @@ export const register = asyncHandler(async (req, res) => {
   const createdUser = await User.findById(user._id).select('-password');
 
   if (!createdUser) {
+    res.status(500).json(new ApiError(500, 'Something went wrong while registering the user'));
     throw new ApiError(500, 'Something went wrong while registering the user');
   }
   const accessToken = user.generateToken();
@@ -107,14 +113,14 @@ export const login = asyncHandler(async (req, res) => {
   const vendor = await StreetVendor.findOne({ email }).select('+password');
 
   if (!user && !vendor) {
-     res.status(401).json(new ApiError(401, 'Invalid credentials'))
+     res.status(401).json(new ApiError(401, 'Invalid email or password'))
      throw new ApiError(401, 'Invalid credentials')
   }
 
   if (user) {
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      res.status(401).json(new ApiError(401, 'Invalid credentials'))
+      res.status(401).json(new ApiError(401, 'Invalid email or password'))
       throw new ApiError(401, 'Invalid credentials');
     }
 

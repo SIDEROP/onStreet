@@ -11,13 +11,15 @@ export const register = asyncHandler(async (req, res) => {
   const { name, email, password, phone, address, businessType, category, description, operatingHours } = req.body;
 
   if (!name || !email || !password || !phone || !address || !businessType || !category) {
+    res.status(400).json(new ApiError(400, 'All required fields must be provided'));
     throw new ApiError(400, 'All required fields must be provided');
   }
+  const existingVendor = await StreetVendor.findOne({ $or: [{ email }, { phone }] });
 
-  const existingVendor = await StreetVendor.findOne({ email });
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
   if (existingVendor || existingUser) {
-    throw new ApiError(409, 'A user or vendor with this email already exists');
+    res.status(409).json(new ApiError(409, 'Vendor already exists with this email or phone'));
+    throw new ApiError(409, 'Vendor already exists with this email or phone');
   }
 
   const vendor = await StreetVendor.create({
@@ -36,6 +38,7 @@ export const register = asyncHandler(async (req, res) => {
 
   const createdVendor = await StreetVendor.findById(vendor._id).select('-password');
   if (!createdVendor) {
+    res.status(500).json(new ApiError(500, 'Something went wrong'));
     throw new ApiError(500, 'Something went wrong while registering the vendor');
   }
   const accessToken = vendor.generateToken();
@@ -51,7 +54,6 @@ export const register = asyncHandler(async (req, res) => {
 // Edit vendor profile
 export const editProfile = asyncHandler(async (req, res) => {
   const { name, phone, address,cuisine, businessType, category, description, operatingHours } = req.body;
-
 
   const updatedFields = {};
   if (name) updatedFields.name = name;
